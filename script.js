@@ -5,6 +5,18 @@ const calculator = {
     operator: null,
 };
 
+function inputDigit(digit) { /*we check if waitingForSecondOperand is true and set displayValue to the key that was clicked. Otherwise, we perform the same check as before, overwriting or appending to calculator.displayValue as appropriate.*/
+    const { displayValue, waitingForSecondOperand } = calculator;
+    
+    if (waitingForSecondOperand === true) {
+        calculator.displayValue = digit;
+        calculator.waitingForSecondOperand = false;
+    } else {
+        calculator.displayValue = displayValue === '0' ? digit : displayValue + digit;
+    }
+        console.log(calculator);
+    }
+
 function updateDisplay() {
     const display = document.querySelector('.calculator-screen');
     display.value = calculator.displayValue;
@@ -20,12 +32,15 @@ keys.addEventListener('click', (event) => {
     }
 
     if (target.classList.contains('operator')) {
-        console.log('operator', target.value);
+        handleOperator(target.value);
+        updateDisplay();
         return;
     }
 
     if (target.classList.contains('decimal')) {
-        console.log('decimal', target.value);
+        inputDecimal(target.value);
+        console.log(event);
+        updateDisplay();
         return;
     }
 
@@ -34,5 +49,38 @@ keys.addEventListener('click', (event) => {
         return;
     }
 
-    console.log('digit', target.value);
+    inputDigit(target.value);
+    updateDisplay();
 });
+
+function inputDecimal(dot) {
+    if (!calculator.displayValue.includes(dot)) {
+        calculator.displayValue += dot;
+    }
+}
+
+function handleOperator(nextOperator) {
+ const { firstOperand, displayValue, operator } = calculator;
+ const inputValue = parseFloat(displayValue); /* convert the current number displayed on the screen to a number*/
+ 
+ if (firstOperand === null) { /*, only if the first operand is not 0 we will then assign this value to the first operand in the next section */
+     calculator.firstOperand = inputValue;
+ } else if (operator) {
+     const result = performCalculation[operator](firstOperand, inputValue); /* ??? this is called 'property lookup' ?? inputValue here is then the second value inserted? I think */
+     
+     calculator.displayValue = String(result);
+     calculator.firstOperand = result;
+ }
+
+ calculator.waitingForSecondOperand = true;
+ calculator.operator = nextOperator; /* next operator here refers to the current operator e.g. + that is being used*/
+ console.log(calculator);
+}
+
+const performCalculation = {
+    '/': (firstOperand, secondOperand) => firstOperand / secondOperand,
+    '*': (firstOperand, secondOperand) => firstOperand * secondOperand,
+    '+': (firstOperand, secondOperand) => firstOperand + secondOperand,
+    '-': (firstOperand, secondOperand) => firstOperand - secondOperand,
+    '=': (firstOperand, secondOperand) => secondOperand
+};
