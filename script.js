@@ -45,7 +45,9 @@ keys.addEventListener('click', (event) => {
     }
 
     if (target.classList.contains('all-clear')) {
-        console.log('clear', target.value);
+        console.log('all-clear', target.value);
+        resetCalculator();
+        updateDisplay();
         return;
     }
 
@@ -54,6 +56,8 @@ keys.addEventListener('click', (event) => {
 });
 
 function inputDecimal(dot) {
+    if (calculator.waitingForSecondOperand === true) return;
+    
     if (!calculator.displayValue.includes(dot)) {
         calculator.displayValue += dot;
     }
@@ -63,10 +67,17 @@ function handleOperator(nextOperator) {
  const { firstOperand, displayValue, operator } = calculator;
  const inputValue = parseFloat(displayValue); /* convert the current number displayed on the screen to a number*/
  
+ if (operator && calculator.waitingForSecondOperand) {
+ calculator.operator = nextOperator;
+ console.log(calculator);
+return; /* in case there is already an operator and we are still waiting for the second value this part of the function runs in case there is a different operator entered before we have the second operand. */
+}
+
  if (firstOperand === null) { /*, only if the first operand is not 0 we will then assign this value to the first operand in the next section */
      calculator.firstOperand = inputValue;
  } else if (operator) {
-     const result = performCalculation[operator](firstOperand, inputValue); /* ??? this is called 'property lookup' ?? inputValue here is then the second value inserted? I think */
+     const currentValue = firstOperand || 0;
+     const result = performCalculation[operator](currentValue, inputValue); /* ??? this is called 'property lookup' ?? inputValue here is then the second value inserted? I think */
      
      calculator.displayValue = String(result);
      calculator.firstOperand = result;
@@ -84,3 +95,15 @@ const performCalculation = {
     '-': (firstOperand, secondOperand) => firstOperand - secondOperand,
     '=': (firstOperand, secondOperand) => secondOperand
 };
+
+function resetCalculator() {
+    calculator.displayValue = '0';
+    calculator.firstOperand = null;
+    calculator.waitingForSecondOperand = false;
+    calculator.operator = null;
+    console.log(calculator);
+}
+
+/* questions to ask myself and research:
+how exactly does a chain of operations work - go through code, (This is because hitting the - key triggers the calculation of the first operation (5 * 20) whose result (100) then set as the firstOperand for the next calculation so by the time we enter 14 as the second operand and hit the = key, the function that is defined in the - property of performOperation is executed giving 86 as the result which is also set as the firstOperand for the next operation.)
+investigate what is meant by 'property lookup */
